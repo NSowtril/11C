@@ -416,9 +416,14 @@ void shell(char *tty_name) {
             printf("File created: %s (fd %d)\n", arg1, fd);
             close(fd);
         }
+		 // Command "ls"
+        else if (strcmp(cmd, "ls") == 0) {
+            ls(current_dirr);
+        }
         // Command "test"
         else if (strcmp(cmd, "test") == 0) {
             //doTest(arg1);
+			
         }
         // Command not supported
         else {
@@ -532,10 +537,11 @@ void help() {
     printf("                              Yulei CHEN    1650257                             ");
     printf("================================================================================");
     //printf("Usage: [command] [flags] [options]                                              ");
-    printf("    help                          :  display help for all instrctions           ");
+    printf("    help                          : display help for all instrctions            ");
+	printf("    [shift]+[up/down]             : scroll up/down the screen                   ");
 	printf("    clear                         : clear the screen                            ");
-    // printf("    ls                            : list files in current directory             ");
-    // printf("    touch       [filename]        : create a new file                           ");
+    printf("    ls                            : list files in current directory             ");
+    printf("    touch       [filename]        : create a new file                           ");
     // printf("    cat         [filename]        : display content of the file                 ");
     // printf("    vi          [filename]        : modify the content of the file              ");
     // printf("    rm          [filename]        : delete a file                               ");

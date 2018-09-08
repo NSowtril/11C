@@ -40,6 +40,7 @@ OBJS		= kernel/kernel.o kernel/start.o kernel/main.o\
 LOBJS		=  lib/syscall.o\
 			lib/printf.o lib/vsprintf.o\
 			lib/string.o lib/misc.o\
+			lib/ls.o\
 			lib/open.o lib/read.o lib/write.o lib/close.o lib/unlink.o\
 			lib/lseek.o\
 			lib/getpid.o lib/stat.o\
@@ -146,6 +147,9 @@ kernel/hd.o: kernel/hd.c
 	$(CC) $(CFLAGS) -o $@ $<
 
 kernel/klib.o: kernel/klib.c
+	$(CC) $(CFLAGS) -o $@ $<
+
+lib/ls.o: lib/ls.c
 	$(CC) $(CFLAGS) -o $@ $<
 
 lib/misc.o: lib/misc.c

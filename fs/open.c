@@ -4,6 +4,7 @@
  * The file contains:
  *   - do_open()
  *   - do_close()
+ *   - do_ls()
  *   - do_lseek()
  *   - create_file()
  * @author Forrest Yu
@@ -199,6 +200,63 @@ PUBLIC int do_close()
 	pcaller->filp[fd] = 0;
 
 	return 0;
+}
+
+/*****************************************************************************
+ *                                do_ls
+ *****************************************************************************/
+PUBLIC int do_ls()
+{
+
+    char pathname[MAX_PATH];
+
+    /* get parameters from the message */
+    int flags = fs_msg.FLAGS;   /* access mode */
+    int name_len = fs_msg.NAME_LEN; /* length of filename */
+    int src = fs_msg.source;    /* caller proc nr. */
+    assert(name_len < MAX_PATH);
+
+    phys_copy((void*)va2la(TASK_FS, pathname),
+          (void*)va2la(src, fs_msg.PATHNAME),
+          name_len);
+    pathname[name_len] = 0;
+
+    int i, j;
+    struct inode * dir_inode;
+    char filename[20];
+    strip_path(filename, pathname,&dir_inode);
+
+    int dir_blk0_nr = dir_inode->i_start_sect;
+    int nr_dir_blks = (dir_inode->i_size + SECTOR_SIZE - 1) / SECTOR_SIZE;
+    int nr_dir_entries = dir_inode->i_size / DIR_ENTRY_SIZE;
+    int m = 0;
+
+    struct dir_entry * pde;
+    for (i = 0; i < nr_dir_blks; i++){
+        //printl("%d %d\n", dir_inode->i_dev,nr_dir_blks);
+        RD_SECT(dir_inode->i_dev, dir_blk0_nr + i);
+
+        pde = (struct dir_entry *)fsbuf;
+        for (j = 0; j < SECTOR_SIZE / DIR_ENTRY_SIZE; j++, pde++){
+            /*struct inode *n = find_inode(pde->inode_nr);*/
+             printl("%s", pde->name);
+            for(int l=strlen(pde->name); l < 15; l++){
+                printl(" ");
+            }
+            if(m % 4 == 3) {
+                printl("\n");
+            }
+            if (++m >= nr_dir_entries){
+                break;
+            }
+        }
+        if(m%4 != 0){
+            printl("\n");
+        }
+        if (m > nr_dir_entries) //[> all entries have been iterated <]
+            break;
+    }
+    return 0;
 }
 
 /*****************************************************************************
