@@ -328,6 +328,27 @@ void clearArr(char *arr, int length) {
     }
 }
 
+// int verifyFilePass(char *path, int fd_stdin) {
+//     char pass[128];
+
+//     struct dir_entry *pde = find_entry(path);
+
+//     /*printl(pde->pass);*/
+
+//     if (strcmp(pde->pass, "") == 0) {
+//         return 1;
+//     }
+
+//     printl("Please input the file password: ");
+//     read(fd_stdin, pass, 128);
+
+//     if (strcmp(pde->pass, pass) == 0) {
+//         return 1;
+//     }
+
+//     return 0;
+// }
+
 PUBLIC void addTwoString(char *to_str, char *from_str1, char *from_str2) {
     int i = 0, j = 0;
     while (from_str1[i] != 0) {
@@ -419,6 +440,95 @@ void shell(char *tty_name) {
 		 // Command "ls"
         else if (strcmp(cmd, "ls") == 0) {
             ls(current_dirr);
+        }
+		// Command "cat"
+        else if (strcmp(cmd, "cat") == 0) {
+            if (arg1[0] != '/') {
+                addTwoString(temp,current_dirr, arg1);
+                memcpy(arg1, temp, 512);
+            }
+
+            fd = open(arg1, O_RDWR);
+            if (fd == -1) {
+                printf("Failed to open file! Please check the filename!\n");
+                continue ;
+            }
+            // if (!verifyFilePass(arg1, fd_stdin)) {
+            //     printf("Authorization failed\n");
+            //     continue;
+            // }
+            read(fd, buf, 1024);
+            close(fd);
+            printf("%s\n", buf);
+        }
+		 // Command "mkdir"
+        else if (strcmp(cmd, "mkdir") == 0) {
+            i = j = 0;
+            while (current_dirr[i] != 0) {
+                arg2[j++] = current_dirr[i++];
+            }
+            i = 0;
+            
+            while (arg1[i] != 0) {
+                arg2[j++] = arg1[i++];
+            }
+			arg2[j] = '/';
+            arg2[j+1] = 0;
+            //printf("%s\n", arg2);
+            fd = mkdir(arg2);
+        }
+		// Command "cd"
+        else if (strcmp(cmd, "cd") == 0) {
+			// return to parent directory
+            if (strcmp(arg1, "..") == 0) {
+                memcpy(arg2, current_dirr, 512);
+                j = 0;
+                int k = 0;
+                int count = 0;
+                while (arg2[k] != 0) {
+                    if (arg2[k++] == '/') {
+                        count++;
+                    }
+                }
+                int index = 0;
+                for (i = 0; arg2[i] != 0; i++) {
+                    if (arg2[i] == '/') {
+                        index++;
+                    }
+                    if (index < count - 1) {
+                        arg1[j++] = arg2[i];
+                    }
+                }
+                arg1[j++] = '/';
+                arg1[j] = 0;
+            }
+			// return to home
+            else if (arg1[0] == 0) {
+                arg1[0] = '/';
+                arg1[1] = 0;
+            }
+            else { // not absolute path from root
+                i = j = 0;
+                while (current_dirr[i] != 0) {
+                    arg2[j++] = current_dirr[i++];
+                }
+                i = 0;
+                while (arg1[i] != 0) {
+                    arg2[j++] = arg1[i++];
+                }
+                arg2[j++] = '/';
+                arg2[j] = 0;
+                memcpy(arg1, arg2, 512);
+            }
+            //printf("%s\n", arg1);
+            fd = open(arg1, O_RDWR);
+
+            if (fd == -1) {
+                printf("The path not exists! Please check the pathname!\n");
+            }
+            else {
+                memcpy(current_dirr, arg1, 512);
+            }
         }
         // Command "test"
         else if (strcmp(cmd, "test") == 0) {

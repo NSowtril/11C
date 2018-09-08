@@ -80,6 +80,9 @@ PUBLIC void task_fs()
 		case LS:
             fs_msg.RETVAL = do_ls();
             break;
+		case MKDIR:
+            fs_msg.RETVAL = do_mkdir();
+            break;
 		default:
 			dump_msg("FS::unknown message:", &fs_msg);
 			assert(0);
@@ -112,6 +115,7 @@ PUBLIC void task_fs()
 		case LSEEK:
 		case STAT:
 		case LS:
+		case MKDIR:
 		case RESUME_PROC:
 			break;
 		default:
