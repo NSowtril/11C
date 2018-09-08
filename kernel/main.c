@@ -260,9 +260,12 @@ void shabby_shell(const char * tty_name)
 	assert(fd_stdout == 1);
 
 	char rdbuf[128];
+	
+	char current_dir[512]="/";	// current directory
 
 	while (1) {
-		write(1, "$ ", 2);
+		//write(1, "$ ", 2);
+		printf("root@owls%s:~$",current_dir);
 		int r = read(0, rdbuf, 70);
 		rdbuf[r] = 0;
 
@@ -312,6 +315,118 @@ void shabby_shell(const char * tty_name)
 	close(0);
 }
 
+void clear() {	
+    clear_screen(0, console_table[current_console].cursor);
+    console_table[current_console].crtc_start = console_table[current_console].orig;
+    console_table[current_console].cursor = console_table[current_console].orig;
+}
+
+void clearArr(char *arr, int length) {
+    int i;
+    for (i = 0; i < length; i++) {
+        arr[i] = 0;
+    }
+}
+
+PUBLIC void addTwoString(char *to_str, char *from_str1, char *from_str2) {
+    int i = 0, j = 0;
+    while (from_str1[i] != 0) {
+        to_str[j++]=from_str1[i++];
+    }
+    i = 0;
+    while (from_str2[i] != 0) {
+        to_str[j++]=from_str2[i++];
+    }
+    to_str[j]=0;
+}
+
+void shell(char *tty_name) {
+    int fd;
+    //int isLogin = 0;
+    char rdbuf[512];
+    char cmd[512];
+    char arg1[512];
+    char arg2[512];
+    char buf[1024];
+    char temp[512];
+
+    int fd_stdin  = open(tty_name, O_RDWR);
+    assert(fd_stdin  == 0);
+    int fd_stdout = open(tty_name, O_RDWR);
+    assert(fd_stdout == 1);
+	help();
+    char current_dirr[512] = "/";
+    while (1) {
+        // clear the array ！
+        clearArr(rdbuf, 512);
+        clearArr(cmd, 512);
+        clearArr(arg1, 512);
+        clearArr(arg2, 512);
+        clearArr(buf, 1024);
+        clearArr(temp, 512);
+        
+        printf("root@owls%s:~$ ", current_dirr);
+        int r = read(fd_stdin, rdbuf, 512);
+        if (strcmp(rdbuf, "") == 0) {
+            continue;
+        }
+        int i = 0;
+        int j = 0;
+        while ((rdbuf[i] != ' ') && (rdbuf[i] != 0)) {
+            cmd[i] = rdbuf[i];
+            i++;
+        }
+        i++;
+        while ((rdbuf[i] != ' ') && (rdbuf[i] != 0)) {
+            arg1[j] = rdbuf[i];
+            i++;
+            j++;
+        }
+        i++;
+        j = 0;
+        while ((rdbuf[i] != ' ') && (rdbuf[i] != 0)) {
+            arg2[j] = rdbuf[i];
+            i++;
+            j++;
+        }
+        // clear
+        rdbuf[r] = 0;
+
+        // Command "help"
+        if (strcmp(cmd, "help") == 0) {
+            help();
+        }
+		// Command "clear"
+        else if (strcmp(cmd, "clear") == 0) {
+            clear();
+        }
+		// Command "touch"
+		else if (strcmp(cmd, "touch") == 0) {
+            if (arg1[0] != '/') {
+                addTwoString(temp,current_dirr, arg1);
+                memcpy(arg1, temp, 512);       
+            }
+
+            fd = open(arg1, O_CREAT | O_RDWR);
+            if (fd == -1) {
+                printf("touch: cannnot create file! Please check the filename!\n");
+                continue ;
+            }
+            write(fd, buf, 1);
+            printf("File created: %s (fd %d)\n", arg1, fd);
+            close(fd);
+        }
+        // Command "test"
+        else if (strcmp(cmd, "test") == 0) {
+            //doTest(arg1);
+        }
+        // Command not supported
+        else {
+            printf("Command not supported!\n");
+        }
+    }
+}
+
 /*****************************************************************************
  *                                Init
  *****************************************************************************/
@@ -321,48 +436,42 @@ void shabby_shell(const char * tty_name)
  *****************************************************************************/
 void Init()
 {
-	int fd_stdin  = open("/dev_tty0", O_RDWR);
-	assert(fd_stdin  == 0);
-	int fd_stdout = open("/dev_tty0", O_RDWR);
-	assert(fd_stdout == 1);
+	// int fd_stdin  = open("/dev_tty0", O_RDWR);
+	// assert(fd_stdin  == 0);
+	// int fd_stdout = open("/dev_tty0", O_RDWR);
+	// assert(fd_stdout == 1);
 
-	printf("Init() is running ...\n");
+	// printf("Init() is running ...\n");
 
-	/* extract `cmd.tar' */
-	untar("/cmd.tar");
+	// /* extract `cmd.tar' */
+	// untar("/cmd.tar");
 			
 
-	char * tty_list[] = {"/dev_tty1", "/dev_tty2"};
+	// char * tty_list[] = {"/dev_tty1", "/dev_tty2"};
 
-	int i;
-	for (i = 0; i < sizeof(tty_list) / sizeof(tty_list[0]); i++) {
-		int pid = fork();
-		if (pid != 0) { /* parent process */
-			printf("[parent is running, child pid:%d]\n", pid);
-		}
-		else {	/* child process */
-			printf("[child is running, pid:%d]\n", getpid());
-			close(fd_stdin);
-			close(fd_stdout);
+	// int i;
+	// for (i = 0; i < sizeof(tty_list) / sizeof(tty_list[0]); i++) {
+	// 	int pid = fork();
+	// 	if (pid != 0) { /* parent process */
+	// 		printf("[parent is running, child pid:%d]\n", pid);
+	// 	}
+	// 	else {	/* child process */
+	// 		printf("[child is running, pid:%d]\n", getpid());
+	// 		close(fd_stdin);
+	// 		close(fd_stdout);
 			
-			shabby_shell(tty_list[i]);
-			assert(0);
-		}
-	}
+	// 		shabby_shell(tty_list[i]);
+	// 		assert(0);
+	// 	}
+	// }
 
-	while (1) {
-		int s;
-		int child = wait(&s);
-		printf("child (%d) exited with status: %d.\n", child, s);
-	}
-
+	// while (1) {
+	// 	int s;
+	// 	int child = wait(&s);
+	// 	printf("child (%d) exited with status: %d.\n", child, s);
+	// }
+	while(1);
 	assert(0);
-}
-
-void clear() {	
-    clear_screen(0, console_table[current_console].cursor);
-    console_table[current_console].crtc_start = console_table[current_console].orig;
-    console_table[current_console].cursor = console_table[current_console].orig;
 }
 
 
@@ -372,7 +481,8 @@ void clear() {
  *======================================================================*/
 void TestA()
 {
-	animation();	
+	//animation();	
+	shell("/dev_tty0");
 	for(;;);
 }
 
@@ -411,3 +521,33 @@ PUBLIC void panic(const char *fmt, ...)
 	__asm__ __volatile__("ud2");
 }
 
+/*****************************************************************************
+ *                                help
+ *****************************************************************************/
+void help() {
+    printf("================================================================================");
+    printf("                                  Owl'S                                         ");
+    printf("                     Authors:                                                   ");
+    printf("                              Chudi LAN     1552687                             ");
+    printf("                              Yulei CHEN    1650257                             ");
+    printf("================================================================================");
+    //printf("Usage: [command] [flags] [options]                                              ");
+    printf("    help                          :  display help for all instrctions           ");
+	printf("    clear                         : clear the screen                            ");
+    // printf("    ls                            : list files in current directory             ");
+    // printf("    touch       [filename]        : create a new file                           ");
+    // printf("    cat         [filename]        : display content of the file                 ");
+    // printf("    vi          [filename]        : modify the content of the file              ");
+    // printf("    rm          [filename]        : delete a file                               ");
+    // printf("    cp          [source] [dest]   : copy a file                                 ");
+    // printf("    mv          [source] [dest]   : move a file                                 ");
+    // printf("    encrypt     [filename]        : encrypt a file                              ");
+    // printf("    cd          [pathname]        : change the directory                        ");
+    // printf("    mkdir       [dirname]         : create a new directory                      ");
+    // printf("    minesweeper                   : start the minesweeper game                  ");
+    // printf("    snake                         : start the snake game                        ");
+    // printf("    2048                          : start the 2048 game                         ");
+    // printf("    process                       : display all process-info and manage         ");
+    // printf("    about                         : display the about of system                 ");
+    printf("================================================================================");
+}

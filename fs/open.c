@@ -88,7 +88,7 @@ PUBLIC int do_open()
 	else if (flags & O_RDWR) { /* file exists */
 		if ((flags & O_CREAT) && (!(flags & O_TRUNC))) {
 			assert(flags == (O_RDWR | O_CREAT));
-			printl("{FS} file exists: %s\n", pathname);
+			printl("{FS} file already exists: %s\n", pathname);
 			return -1;
 		}
 		assert((flags ==  O_RDWR                     ) ||

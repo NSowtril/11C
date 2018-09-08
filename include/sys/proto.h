@@ -44,6 +44,7 @@ PUBLIC void TestA();
 PUBLIC void TestB();
 PUBLIC void TestC();
 PUBLIC void panic(const char *fmt, ...);
+PUBLIC void help();
 
 /* i8259.c */
 PUBLIC void init_8259A();
