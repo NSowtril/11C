@@ -530,6 +530,33 @@ void shell(char *tty_name) {
                 memcpy(current_dirr, arg1, 512);
             }
         }
+		// Command "vi"
+        else if (strcmp(cmd, "vi") == 0) {
+            if (arg1[0] == 0) {
+                printf("vi: missing file operand\n");
+				printf("Please use 'vi [filename]' instead.\n");
+                continue;
+            }
+            if (arg1[0] != '/') {
+                addTwoString(temp, current_dirr, arg1);
+                memcpy(arg1, temp, 512);
+            }
+
+            fd = open(arg1, O_RDWR);
+            if (fd == -1) {
+                printf("vi: cannot open file: %s, please check the filename!\n",arg1);
+                continue ;
+            }
+            // if (!verifyFilePass(arg1, fd_stdin)) {
+            //     printf("Authorization failed\n");
+            //     continue;
+            // }
+            int tail = read(fd_stdin, rdbuf, 512);
+            rdbuf[tail] = 0;
+
+            write(fd, rdbuf, tail + 1);
+            close(fd);
+        }
         // Command "test"
         else if (strcmp(cmd, "test") == 0) {
             //doTest(arg1);
@@ -652,8 +679,8 @@ void help() {
 	printf("    clear                         : clear the screen                            ");
     printf("    ls                            : list files in current directory             ");
     printf("    touch       [filename]        : create a new file                           ");
-    // printf("    cat         [filename]        : display content of the file                 ");
-    // printf("    vi          [filename]        : modify the content of the file              ");
+    printf("    cat         [filename]        : display content of the file                 ");
+    printf("    vi          [filename]        : modify the content of the file              ");
     // printf("    rm          [filename]        : delete a file                               ");
     // printf("    cp          [source] [dest]   : copy a file                                 ");
     // printf("    mv          [source] [dest]   : move a file                                 ");
