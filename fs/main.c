@@ -37,7 +37,7 @@ PRIVATE int fs_exit();
  *****************************************************************************/
 PUBLIC void task_fs()
 {
-	printl("{FS} Task FS begins.\n");
+	printl("{FS} Task FS begins. /fs/main.c/task_fs()\n");
 
 	init_fs();
 
@@ -134,6 +134,7 @@ PUBLIC void task_fs()
 PRIVATE void init_fs()
 {
 	int i;
+	printl("/fs/main.c/init_fs()\n");
 
 	/* f_desc_table[] */
 	for (i = 0; i < NR_FILE_DESC; i++)
@@ -188,6 +189,7 @@ PRIVATE void init_fs()
  *****************************************************************************/
 PRIVATE void mkfs()
 {
+	
 	MESSAGE driver_msg;
 	int i, j;
 
